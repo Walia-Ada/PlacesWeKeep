@@ -7,37 +7,35 @@ const ACCESS_TOKEN =
 // ----------------------------------------------------
 // 1. Grab HTML elements
 // ----------------------------------------------------
-const placeInput = document.getElementById("place"); // display only
+const placeInput = document.getElementById("place");
 const textInput = document.getElementById("text");
 const submitButton = document.getElementById("submit");
 const memoriesDiv = document.getElementById("memories");
 const memoryForm = document.getElementById("memory-form");
 
 // ----------------------------------------------------
-// 2. Map state
+// 2. State
 // ----------------------------------------------------
 let selectedCoords = null;
 let tempMarker = null;
-
-// Keep track of markers by memory id
 const markersById = new Map();
 
 // ----------------------------------------------------
-// 3. Create the map
+// 3. Create map
 // ----------------------------------------------------
 mapboxgl.accessToken = ACCESS_TOKEN;
 
 const map = new mapboxgl.Map({
   container: "map",
   style: "mapbox://styles/mapbox/streets-v12",
-  center: [-79.38, 43.65], // Toronto
+  center: [-79.38, 43.65],
   zoom: 11
 });
 
 map.addControl(new mapboxgl.NavigationControl());
 
 // ----------------------------------------------------
-// 4. Capture map clicks
+// 4. Choose location by clicking map
 // ----------------------------------------------------
 map.on("click", (e) => {
   selectedCoords = e.lngLat;
@@ -56,11 +54,11 @@ map.on("click", (e) => {
 });
 
 // ----------------------------------------------------
-// 5. Render ONE memory (pin + list)
+// 5. Render memory (pin + list)
 // ----------------------------------------------------
 function renderMemory(memory) {
-  // ---------- Marker ----------
-  if (memory.lat && memory.lng) {
+  // ----- Pin -----
+  if (memory.lat != null && memory.lng != null) {
     const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
       <p>${memory.text}</p>
       <small>${new Date(memory.createdAt).toLocaleString()}</small>
@@ -74,7 +72,7 @@ function renderMemory(memory) {
     markersById.set(memory.id, marker);
   }
 
-  // ---------- List item ----------
+  // ----- List item -----
   const div = document.createElement("div");
   div.className = "memory-card";
   div.style.cursor = "pointer";
@@ -85,7 +83,6 @@ function renderMemory(memory) {
     <small>${new Date(memory.createdAt).toLocaleString()}</small>
   `;
 
-  // ---------- Click list → fly to pin ----------
   div.addEventListener("click", () => {
     if (!memory.lat || !memory.lng) return;
 
@@ -103,32 +100,32 @@ function renderMemory(memory) {
 }
 
 // ----------------------------------------------------
-// 6. Fetch memories (FIXED ENDPOINT)
+// 6. Fetch memories
 // ----------------------------------------------------
 async function fetchMemories() {
   memoriesDiv.innerHTML = "";
   markersById.clear();
 
   try {
-    const response = await fetch("/api/data"); // ✅ FIX
-    if (!response.ok) throw new Error("Network error");
+    const response = await fetch("/data");
+    if (!response.ok) throw new Error("Fetch failed");
 
     const memories = await response.json();
 
     if (!memories.length) {
-      memoriesDiv.innerHTML = "<p>No memories yet. Be the first!</p>";
+      memoriesDiv.innerHTML = "<p>No memories yet.</p>";
       return;
     }
 
     memories.forEach(renderMemory);
-  } catch (error) {
-    console.error("Error fetching memories:", error);
+  } catch (err) {
+    console.error(err);
     memoriesDiv.innerHTML = "<p>Could not load memories.</p>";
   }
 }
 
 // ----------------------------------------------------
-// 7. Post a new memory (FIXED ENDPOINT)
+// 7. Save memory
 // ----------------------------------------------------
 async function postMemory() {
   if (!selectedCoords) {
@@ -143,7 +140,7 @@ async function postMemory() {
   }
 
   try {
-    const response = await fetch("/api/data", { // ✅ FIX
+    const response = await fetch("/data", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -155,8 +152,7 @@ async function postMemory() {
     });
 
     if (!response.ok) {
-      const err = await response.json();
-      alert("Error saving memory: " + (err.error || "unknown error"));
+      alert("Failed to save memory");
       return;
     }
 
@@ -170,26 +166,18 @@ async function postMemory() {
     }
 
     fetchMemories();
-  } catch (error) {
-    console.error("Error posting memory:", error);
-    alert("Something went wrong while saving.");
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
   }
 }
 
 // ----------------------------------------------------
-// 8. Button handler
+// 8. Events
 // ----------------------------------------------------
 submitButton.addEventListener("click", postMemory);
 
-// ----------------------------------------------------
-// 9. On page load
-// ----------------------------------------------------
 window.addEventListener("load", () => {
-  const autofillEl = document.querySelector("mapbox-address-autofill");
-  if (autofillEl) {
-    autofillEl.accessToken = ACCESS_TOKEN;
-  }
-
   memoryForm.classList.add("hidden");
   fetchMemories();
 });
