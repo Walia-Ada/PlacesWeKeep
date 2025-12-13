@@ -11,5 +11,7 @@ model Memory {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   place     String
   text      String
+  lat       Float
+  lng       Float
   createdAt DateTime @default(now())
 }

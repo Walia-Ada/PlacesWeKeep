@@ -2,19 +2,40 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>The Places We Keep</title>
-    <link rel="stylesheet" href="/style.css" />
-      <link rel="icon" href="/assets/sun-8786.svg" type="image/svg+xml" />
-  </head>
-  <body>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <title>The Places We Keep</title>
+
+    <!-- Main styles -->
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="icon" href="/assets/sun-8786.svg" type="image/svg+xml" />
+
+    <!-- Mapbox GL (for the actual map + pins) -->
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script
+      src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"
+      defer
+    ></script>
+
+    <!-- Mapbox Search (optional, keeps address autocomplete available later) -->
+    <script
+      src="https://api.mapbox.com/search-js/v1.5.0/web.js"
+      defer
+    ></script>
+  </head>
+
+  <body>
+    <!-- HEADER -->
     <header class="site-header">
-  
-    </body>
-    </html>
       <div class="header-inner">
-        <img src="/assets/sun-8786.svg" alt="icon" class="site-icon" />
+        <img
+          src="/assets/sun-8786.svg"
+          alt="icon"
+          class="site-icon"
+        />
         <div class="titles">
           <h1 class="site-title">The Places We Keep</h1>
           <p class="site-sub">share a good memory from a place</p>
@@ -22,51 +43,45 @@
       </div>
     </header>
 
+    <!-- MAIN CONTENT -->
     <main>
-  <!-- NEW: Wrap the inputs in a real form -->
-  <form id="memory-form" class="share-form" autocomplete="off">
-    <label for="place">Address or place</label>
+      <!-- MAP -->
+      <div id="map"></div>
 
-    <!-- Keep the Mapbox wrapper, but we’ll give it the token from JS -->
-    <mapbox-address-autofill id="autofill-wrapper">
-      <input
-        id="place"
-        name="place"
-        type="text"
-        placeholder="Start typing your address…"
-        autocomplete="shipping address-line1 country-name"
-        required
-      />
-    </mapbox-address-autofill>
+      <!-- MEMORY FORM (hidden until map click) -->
+      <form
+        id="memory-form"
+        class="share-form hidden"
+        autocomplete="off"
+      >
+        <p id="selected-location"></p>
 
-    <label for="text">Your memory / feeling / thought</label>
-    <textarea
-      id="text"
-      name="text"
-      rows="6"
-      placeholder="I remember…"
-      required
-    ></textarea>
+        <label for="text">Your memory</label>
+        <textarea
+          id="text"
+          name="text"
+          rows="5"
+          placeholder="I remember…"
+          required
+        ></textarea>
 
-    <button id="submit" type="button">Share</button>
-  </form>
+        <button type="button" id="submit">
+          Save memory
+        </button>
+      </form>
 
-  <section class="feed">
-    <h3>Shared memories</h3>
-    <div id="memories"></div>
-  </section>
-</main>
+      <!-- FEED (optional list view, still works) -->
+      <section class="feed">
+        <h3>Shared memories</h3>
+        <div id="memories"></div>
+      </section>
+    </main>
 
-<!-- Mapbox script -->
-<script
-  id="search-js"
-  defer
-  src="https://api.mapbox.com/search-js/v1.5.0/web.js"
-></script>
-
-<!-- Your app script -->
-<script
-  src="script.js"
-  type="module"
-  defer
-></script>
+    <!-- APP SCRIPT -->
+    <script
+      src="/script.js"
+      type="module"
+      defer
+    ></script>
+  </body>
+</html>

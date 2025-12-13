@@ -1,126 +1,133 @@
-// Below we will use the Express Router to define a series of API endpoints.
-// Express will listen for API requests and respond accordingly
 import express from 'express'
-const router = express.Router()
-
-// Set this to match the model name in your Prisma schema
-// If your Prisma model is `model Memory { ... }` the client property is `prisma.memory`
-const model = 'memory'
-
-// Prisma lets NodeJS communicate with MongoDB
-// Let's import and initialize the Prisma client
-// See also: https://www.prisma.io/docs
 import { PrismaClient } from '@prisma/client'
+
+const router = express.Router()
 const prisma = new PrismaClient()
 
 // Connect to the database
-prisma.$connect().then(() => {
+prisma.$connect()
+  .then(() => {
     console.log('Prisma connected to MongoDB')
-}).catch(err => {
+  })
+  .catch(err => {
     console.error('Failed to connect to MongoDB:', err)
-})
+  })
 
-// ----- CREATE (POST) -----
-// Create a new record for the configured model
-// This is the 'C' of CRUD
+/* -----------------------------
+   CREATE (POST)
+   ----------------------------- */
 router.post('/data', async (req, res) => {
-    try {
-        // Only accept the explicit fields we expect for a Memory
-        const { place, text } = req.body
+  try {
+    const { place, text, lat, lng } = req.body
 
-        const created = await prisma[model].create({
-            data: { place, text }
-        })
-        res.status(201).send(created)
-    } catch (err) {
-        console.error('POST /data error:', err)
-        res.status(500).send({ error: 'Failed to create record', details: err.message || err })
+    if (!text || lat === undefined || lng === undefined) {
+      return res.status(400).send({ error: 'Missing required fields' })
     }
+
+    const memory = await prisma.memory.create({
+      data: {
+        place: place || '',
+        text,
+        lat,
+        lng
+      }
+    })
+
+    res.status(201).send(memory)
+  } catch (err) {
+    console.error('POST /data error:', err)
+    res.status(500).send({
+      error: 'Failed to create record',
+      details: err.message
+    })
+  }
 })
 
-
-// ----- READ (GET) list ----- 
+/* -----------------------------
+   READ (GET all)
+   ----------------------------- */
 router.get('/data', async (req, res) => {
-    try {
-        // fetch first 100 records from the database with no filter
-        const result = await prisma[model].findMany({
-            take: 100
-        })
-        res.send(result)
-    } catch (err) {
-        console.error('GET /data error:', err)
-        res.status(500).send({ error: 'Failed to fetch records', details: err.message || err })
-    }
+  try {
+    const result = await prisma.memory.findMany({
+      take: 100,
+      orderBy: { createdAt: 'desc' }
+    })
+    res.send(result)
+  } catch (err) {
+    console.error('GET /data error:', err)
+    res.status(500).send({
+      error: 'Failed to fetch records',
+      details: err.message
+    })
+  }
 })
 
-
-
-// ----- findMany() with search -------
-// Accepts optional search parameter to filter by `place` or `text`
-// Example query: /search?terms=bakery
+/* -----------------------------
+   SEARCH
+   ----------------------------- */
 router.get('/search', async (req, res) => {
-    try {
-        // get search terms from query string, default to empty string
-        const searchTerms = req.query.terms || ''
-        // fetch the records from the database where place or text contains the terms
-        const result = await prisma[model].findMany({
-            where: {
-                OR: [
-                    { place: { contains: searchTerms, mode: 'insensitive' } },
-                    { text: { contains: searchTerms, mode: 'insensitive' } }
-                ]
-            },
-            orderBy: { createdAt: 'desc' },
-            take: 10
-        })
-        res.send(result)
-    } catch (err) {
-        console.error('GET /search error:', err)
-        res.status(500).send({ error: 'Search failed', details: err.message || err })
-    }
+  try {
+    const searchTerms = req.query.terms || ''
+
+    const result = await prisma.memory.findMany({
+      where: {
+        OR: [
+          { place: { contains: searchTerms, mode: 'insensitive' } },
+          { text: { contains: searchTerms, mode: 'insensitive' } }
+        ]
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    })
+
+    res.send(result)
+  } catch (err) {
+    console.error('GET /search error:', err)
+    res.status(500).send({
+      error: 'Search failed',
+      details: err.message
+    })
+  }
 })
 
-
-// ----- UPDATE (PUT) -----
-// Listen for PUT requests
-// respond by updating a particular record in the database
-// This is the 'U' of CRUD
-// After updating the database we send the updated record back to the frontend.
+/* -----------------------------
+   UPDATE (PUT)
+   ----------------------------- */
 router.put('/data/:id', async (req, res) => {
-    try {
-        // Only accept the explicit fields we want to update on a Memory
-        const { place, text } = req.body
+  try {
+    const { place, text, lat, lng } = req.body
 
-        // Prisma update returns the updated version by default
-        const updated = await prisma[model].update({
-            where: { id: req.params.id },
-            data: { place, text }
-        })
-        res.send(updated)
-    } catch (err) {
-        console.error('PUT /data/:id error:', err)
-        res.status(500).send({ error: 'Failed to update record', details: err.message || err })
-    }
+    const updated = await prisma.memory.update({
+      where: { id: req.params.id },
+      data: { place, text, lat, lng }
+    })
+
+    res.send(updated)
+  } catch (err) {
+    console.error('PUT /data/:id error:', err)
+    res.status(500).send({
+      error: 'Failed to update record',
+      details: err.message
+    })
+  }
 })
 
-// ----- DELETE -----
-// Listen for DELETE requests
-// respond by deleting a particular record in the database
-// This is the 'D' of CRUD
+/* -----------------------------
+   DELETE
+   ----------------------------- */
 router.delete('/data/:id', async (req, res) => {
-    try {
-        const result = await prisma[model].delete({
-            where: { id: req.params.id }
-        })
-        res.send(result)
-    } catch (err) {
-        console.error('DELETE /data/:id error:', err)
-        res.status(500).send({ error: 'Failed to delete record', details: err.message || err })
-    }
+  try {
+    const result = await prisma.memory.delete({
+      where: { id: req.params.id }
+    })
+    res.send(result)
+  } catch (err) {
+    console.error('DELETE /data/:id error:', err)
+    res.status(500).send({
+      error: 'Failed to delete record',
+      details: err.message
+    })
+  }
 })
 
-
-// export the api routes for use elsewhere in our app 
-// (e.g. in index.js )
-export default router;
-
+export default router
