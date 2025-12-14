@@ -7,11 +7,11 @@ const ACCESS_TOKEN =
 // ----------------------------------------------------
 // 1. Grab HTML elements
 // ----------------------------------------------------
-const placeInput = document.getElementById("place");
 const textInput = document.getElementById("text");
 const submitButton = document.getElementById("submit");
 const memoriesDiv = document.getElementById("memories");
 const memoryForm = document.getElementById("memory-form");
+const selectedLocationEl = document.getElementById("selected-location");
 
 // ----------------------------------------------------
 // 2. State
@@ -48,16 +48,15 @@ map.on("click", (e) => {
 
   memoryForm.classList.remove("hidden");
 
-  placeInput.value = `Pinned location: ${selectedCoords.lat.toFixed(
+  selectedLocationEl.textContent = `Pinned location: ${selectedCoords.lat.toFixed(
     4
   )}, ${selectedCoords.lng.toFixed(4)}`;
 });
 
 // ----------------------------------------------------
-// 5. Render memory (pin + list)
+// 5. Render memory
 // ----------------------------------------------------
 function renderMemory(memory) {
-  // ----- Pin -----
   if (memory.lat != null && memory.lng != null) {
     const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
       <p>${memory.text}</p>
@@ -72,11 +71,8 @@ function renderMemory(memory) {
     markersById.set(memory.id, marker);
   }
 
-  // ----- List item -----
   const div = document.createElement("div");
   div.className = "memory-card";
-  div.style.cursor = "pointer";
-
   div.innerHTML = `
     <h4>${memory.place}</h4>
     <p>${memory.text}</p>
@@ -84,12 +80,9 @@ function renderMemory(memory) {
   `;
 
   div.addEventListener("click", () => {
-    if (!memory.lat || !memory.lng) return;
-
     map.flyTo({
       center: [memory.lng, memory.lat],
-      zoom: 15,
-      speed: 0.8
+      zoom: 15
     });
 
     const marker = markersById.get(memory.id);

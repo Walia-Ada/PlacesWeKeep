@@ -6,11 +6,9 @@
 
     <title>The Places We Keep</title>
 
-    <!-- Main styles -->
     <link rel="stylesheet" href="/style.css" />
     <link rel="icon" href="/assets/sun-8786.svg" type="image/svg+xml" />
 
-    <!-- Mapbox GL (for the actual map + pins) -->
     <link
       href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
       rel="stylesheet"
@@ -19,23 +17,12 @@
       src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"
       defer
     ></script>
-
-    <!-- Mapbox Search (optional, keeps address autocomplete available later) -->
-    <script
-      src="https://api.mapbox.com/search-js/v1.5.0/web.js"
-      defer
-    ></script>
   </head>
 
   <body>
-    <!-- HEADER -->
     <header class="site-header">
       <div class="header-inner">
-        <img
-          src="/assets/sun-8786.svg"
-          alt="icon"
-          class="site-icon"
-        />
+        <img src="/assets/sun-8786.svg" alt="icon" class="site-icon" />
         <div class="titles">
           <h1 class="site-title">The Places We Keep</h1>
           <p class="site-sub">share a good memory from a place</p>
@@ -43,45 +30,29 @@
       </div>
     </header>
 
-    <!-- MAIN CONTENT -->
     <main>
-      <!-- MAP -->
       <div id="map"></div>
 
-      <!-- MEMORY FORM (hidden until map click) -->
-      <form
-        id="memory-form"
-        class="share-form hidden"
-        autocomplete="off"
-      >
+      <form id="memory-form" class="share-form hidden" autocomplete="off">
         <p id="selected-location"></p>
 
         <label for="text">Your memory</label>
         <textarea
           id="text"
-          name="text"
           rows="5"
           placeholder="I remember…"
           required
         ></textarea>
 
-        <button type="button" id="submit">
-          Save memory
-        </button>
+        <button type="button" id="submit">Save memory</button>
       </form>
 
-      <!-- FEED (optional list view, still works) -->
       <section class="feed">
         <h3>Shared memories</h3>
         <div id="memories"></div>
       </section>
     </main>
 
-    <!-- APP SCRIPT -->
-    <script
-      src="/script.js"
-      type="module"
-      defer
-    ></script>
+    <script src="/script.js" type="module"></script>
   </body>
 </html>
